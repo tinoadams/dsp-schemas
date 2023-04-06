@@ -1,0 +1,22 @@
+{
+    "namespace": "com.petstore",
+    "fields": [
+        {
+            "name": "kind",
+            "type": {
+                "name": "Kind",
+                "symbols": [
+                    "CAT",
+                    "DOG"
+                ],
+                "type": "enum"
+            }
+        },
+        {
+            "name": "name",
+            "type": "string"
+        }
+    ],
+    "name": "Pet",
+    "type": "record"
+}
