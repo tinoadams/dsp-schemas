@@ -25,15 +25,18 @@ for suffix in key value; do
     # generate a JSON buffer containing the new schema
     schema_buffer="$(tempfile)"
     echo '{"schema": "'$(sed 's/"/\\"/g' $avro_file)'"}' > "$schema_buffer"
-    # validate the new schema against the Confluent Schema Registry
-    echo "Validating subject: $subject"
-    curl -L --silent --fail -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
-        --data "@$schema_buffer" \
-        "$SCHEMA_REGISTRY_URL/compatibility/subjects/$subject/versions/latest?verbose=true" | tee "$schema_buffer.out"
-    echo ''
-    # check if the schema is compatible
-    jq -r '.is_compatible' < "$schema_buffer.out" | grep -q true && echo "✅ Schema is compatible" || echo "❌ ERROR: Schema is not compatible"
 
+    # validate the new schema against the Confluent Schema Registry
+    if [ "$MODE" = "validate" ]; then
+        echo "Validating subject: $subject"
+        curl -L --silent --fail -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+            --data "@$schema_buffer" \
+            "$SCHEMA_REGISTRY_URL/compatibility/subjects/$subject/versions/latest?verbose=true" | tee "$schema_buffer.out"
+        echo ''
+        # check if the schema is compatible
+        jq -r '.is_compatible' < "$schema_buffer.out" | grep -q true && echo "✅ Schema is compatible" || echo "❌ ERROR: Schema is not compatible"
+    fi
+    
     # register the new schema with the Confluent Schema Registry
     if [ "$MODE" = "register" ]; then
         echo "Registering subject: $subject"
