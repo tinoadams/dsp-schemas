@@ -1,15 +1,20 @@
 .PHONY: help
 help:
-	@cat $(MAKEFILE_LIST) | grep -E "^[^[:space:]]*: *.*## *" | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}'
+	@cat $(MAKEFILE_LIST) | grep -E "^[^[:space:]]*: *.*## *" | awk 'BEGIN {FS = ":.*?## "}; {printf "\033[36m%-20s\033[0m %s\n", $$1, $$2}'
 
-validate: ## Validate all subject schemas against the schema registry
-	scripts/foreach-subject.bash ./subjects scripts/register-subject.bash "http://localhost:8081" "validate"
+local-build-%: ## For a given subject, build then register and deploy packages locally eg. make local-build-test-topic
+	scripts/exec-subject-mvn.bash "package schema-registry:set-compatibility@set-compatibility \
+		schema-registry:test-compatibility@test-compatibility schema-registry:register@register \
+		deploy" "local" "0.0-snapshot" "./subjects/$*"
 
-package-%: ## Build the java package for each subject
-	scripts/foreach-subject.bash ./subjects scripts/build-package.bash "$*"
+ci-package: ## Uses env var RELEASE_TAG to package libraries for all subjects that have changed since the previous release eg. make ci-package RELEASE_TAG=non-prod/1.1
+	scripts/foreach-changed-subject.bash ./subjects "$$RELEASE_TAG" BY_VERSION \
+		scripts/exec-subject-mvn.bash "validate package"
 
-publish: ## Publish java packages and register schemas with the schema registry
-	scripts/foreach-subject.bash ./subjects scripts/register-subject.bash "http://localhost:8081" "register"
+ci-register: ## Uses env var RELEASE_TAG to register/update all subjects that have changed since the previous release with the registry eg. make ci-register RELEASE_TAG=non-prod/1.1
+	scripts/foreach-changed-subject.bash ./subjects "$$RELEASE_TAG" BY_VERSION \
+		scripts/exec-subject-mvn.bash "schema-registry:set-compatibility@set-compatibility schema-registry:test-compatibility@test-compatibility schema-registry:register@register"
 
-changed-subjects: ## List all subjects that have changed between the given release tag and the previous version
-	scripts/changed-subjects.bash ./subjects/ "$$RELEASE_TAG" BY_VERSION
+ci-publish: ## Uses env var RELEASE_TAG to publish libraries for all subjects that have changed since the previous release to the artefact storage eg. make ci-publish RELEASE_TAG=non-prod/1.1
+	scripts/foreach-changed-subject.bash ./subjects "$$RELEASE_TAG" BY_VERSION \
+		scripts/exec-subject-mvn.bash "deploy"

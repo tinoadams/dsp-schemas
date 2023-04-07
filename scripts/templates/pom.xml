@@ -2,18 +2,80 @@
     xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
     xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
     <modelVersion>4.0.0</modelVersion>
-    <groupId>au.com.dsp</groupId>
-    <artifactId>${TEMPLATE_SCHEMA_PACKAGE_NAME}</artifactId>
+    <groupId>au.com.dsp.subjects</groupId>
+    <artifactId>${TEMPLATE_SUBJECT_PACKAGE_NAME}</artifactId>
     <packaging>jar</packaging>
-    <version>${TEMPLATE_SCHEMA_PACKAGE_VERSION}</version>
-    <name>${TEMPLATE_SCHEMA_PACKAGE_NAME}</name>
+    <version>${TEMPLATE_SUBJECT_PACKAGE_VERSION}</version>
+    <name>${TEMPLATE_SUBJECT_PACKAGE_NAME}</name>
     <url>http://maven.apache.org</url>
+
+    <!-- Each profile.activation.property.name matches an environment which is provided via release tags eg git tag
+    non-prod/1.2 -->
+    <profiles>
+        <profile>
+            <id>local</id>
+            <activation>
+                <property>
+                    <name>local</name>
+                </property>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>local</id>
+                    <name>Local repository</name>
+                    <url>file://${user.home}/.m2/repository</url>
+                </repository>
+            </distributionManagement>
+            <properties>
+                <schemaRegistryUrl>http://localhost:8081</schemaRegistryUrl>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>non-prod</id>
+            <activation>
+                <property>
+                    <name>non-prod</name>
+                </property>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>non-prod</id>
+                    <name>Local repository</name>
+                    <url>file://${user.home}/.m2/repository</url>
+                </repository>
+            </distributionManagement>
+            <properties>
+                <schemaRegistryUrl>http://schema.non-prod:8081</schemaRegistryUrl>
+            </properties>
+        </profile>
+
+        <profile>
+            <id>prod</id>
+            <activation>
+                <property>
+                    <name>prod</name>
+                </property>
+            </activation>
+            <distributionManagement>
+                <repository>
+                    <id>prod</id>
+                    <name>Local repository</name>
+                    <url>file://${user.home}/.m2/repository</url>
+                </repository>
+            </distributionManagement>
+            <properties>
+                <schemaRegistryUrl>http://schema.prod:8081</schemaRegistryUrl>
+            </properties>
+        </profile>
+    </profiles>
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
         <compiler-plugin.version>3.10.1</compiler-plugin.version>
         <maven.compiler.release>17</maven.compiler.release>
         <avro.version>1.11.1</avro.version>
+        <confluent.version>7.3.3</confluent.version>
     </properties>
 
     <dependencies>
@@ -34,6 +96,13 @@
             <version>${avro.version}</version>
         </dependency>
     </dependencies>
+
+    <pluginRepositories>
+        <pluginRepository>
+            <id>confluent</id>
+            <url>https://packages.confluent.io/maven/</url>
+        </pluginRepository>
+    </pluginRepositories>
 
     <build>
         <plugins>
@@ -56,13 +125,74 @@
                             <goal>idl-protocol</goal>
                         </goals>
                         <configuration>
-                            <sourceDirectory>${project.basedir}/../../../subjects/${TEMPLATE_SCHEMA_PACKAGE_NAME}/</sourceDirectory>
+                            <sourceDirectory>${TEMPLATE_AVRO_FILES_LOCATION}/</sourceDirectory>
                             <outputDirectory>${project.basedir}/src/main/java/</outputDirectory>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>io.confluent</groupId>
+                <artifactId>kafka-schema-registry-maven-plugin</artifactId>
+                <version>${confluent.version}</version>
+                <configuration>
+                    <schemaRegistryUrls>
+                        <param>${schemaRegistryUrl}</param>
+                    </schemaRegistryUrls>
+                </configuration>
+                <executions>
+                    <execution>
+                        <id>validate</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>validate</goal>
+                        </goals>
+                        <configuration>
+                            <subjects>
+                                <${TEMPLATE_SUBJECT_PACKAGE_NAME}-key>${TEMPLATE_AVRO_FILES_LOCATION}/key.avsc</${TEMPLATE_SUBJECT_PACKAGE_NAME}-key>
+                                <${TEMPLATE_SUBJECT_PACKAGE_NAME}-value>${TEMPLATE_AVRO_FILES_LOCATION}/value.avsc</${TEMPLATE_SUBJECT_PACKAGE_NAME}-value>
+                            </subjects>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>test-compatibility</id>
+                        <phase>validate</phase>
+                        <goals>
+                            <goal>test-compatibility</goal>
+                        </goals>
+                        <configuration>
+                            <subjects>
+                                <${TEMPLATE_SUBJECT_PACKAGE_NAME}-key>${TEMPLATE_AVRO_FILES_LOCATION}/key.avsc</${TEMPLATE_SUBJECT_PACKAGE_NAME}-key>
+                                <${TEMPLATE_SUBJECT_PACKAGE_NAME}-value>${TEMPLATE_AVRO_FILES_LOCATION}/value.avsc</${TEMPLATE_SUBJECT_PACKAGE_NAME}-value>
+                            </subjects>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>set-compatibility</id>
+                        <configuration>
+                            <compatibilityLevels>
+                                <${TEMPLATE_SUBJECT_PACKAGE_NAME}-key>FULL_TRANSITIVE</${TEMPLATE_SUBJECT_PACKAGE_NAME}-key>
+                                <${TEMPLATE_SUBJECT_PACKAGE_NAME}-value>FULL_TRANSITIVE</${TEMPLATE_SUBJECT_PACKAGE_NAME}-value>
+                            </compatibilityLevels>
+                        </configuration>
+                    </execution>
+
+                    <execution>
+                        <id>register</id>
+                        <goals>
+                            <goal>register</goal>
+                        </goals>
+                        <configuration>
+                            <subjects>
+                                <${TEMPLATE_SUBJECT_PACKAGE_NAME}-key>${TEMPLATE_AVRO_FILES_LOCATION}/key.avsc</${TEMPLATE_SUBJECT_PACKAGE_NAME}-key>
+                                <${TEMPLATE_SUBJECT_PACKAGE_NAME}-value>${TEMPLATE_AVRO_FILES_LOCATION}/value.avsc</${TEMPLATE_SUBJECT_PACKAGE_NAME}-value>
+                            </subjects>
                         </configuration>
                     </execution>
                 </executions>
             </plugin>
         </plugins>
     </build>
-
 </project>
