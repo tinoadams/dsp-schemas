@@ -2,7 +2,7 @@
 set -eo pipefail
 
 # set PATH_TO_SUBJECTS and error out if not provided
-export PATH_TO_SUBJECTS="${1:?Please provide PATH_TO_SUBJECTS as first argument}"
+PATH_TO_SUBJECTS="${1:?Please provide PATH_TO_SUBJECTS as first argument}"
 # remove first argument
 shift
 

@@ -4,11 +4,11 @@ set -eo pipefail
 # Given a directory containing Avro schema definitions, this script builds the Java serde packages
 
 # set SCHEMA_PACKAGE_VERSION and error out if not provided
-export SCHEMA_PACKAGE_VERSION="${1:?Please provide SCHEMA_PACKAGE_VERSION as first argument}"
+SCHEMA_PACKAGE_VERSION="${1:?Please provide SCHEMA_PACKAGE_VERSION as first argument}"
 # set AVRO_SD_LOCATION and error out if not provided
-export AVRO_SD_LOCATION="$(realpath "${2:?Please provide AVRO_SD_LOCATION as second argument}")"
+AVRO_SD_LOCATION="$(realpath "${2:?Please provide AVRO_SD_LOCATION as second argument}")"
 # the name of the java package is the subject name withouth key/value suffix
-export SCHEMA_PACKAGE_NAME="$(basename "$AVRO_SD_LOCATION")"
+SCHEMA_PACKAGE_NAME="$(basename "$AVRO_SD_LOCATION")"
 
 pushd "$(dirname "$0")" > /dev/null
 echo "Building $SCHEMA_PACKAGE_NAME ($AVRO_SD_LOCATION)"

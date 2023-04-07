@@ -4,13 +4,13 @@ set -eo pipefail
 # Validate/register key and value Avro schema definitions in the given directory against the schema registry
 
 # set SCHEMA_REGISTRY_URL and error out if not provided
-export SCHEMA_REGISTRY_URL="${1:?Please provide SCHEMA_REGISTRY_URL as first argument}"
+SCHEMA_REGISTRY_URL="${1:?Please provide SCHEMA_REGISTRY_URL as first argument}"
 # set MODE, pass "register" as third argument to register the schema with the schema registry eg register-subject.bash http://localhost:8081 "register" ./subjects/xyz
-export MODE="${2:?Please provide MODE [validate|register] as second argument}"
+MODE="${2:?Please provide MODE [validate|register] as second argument}"
 # set AVRO_SD_LOCATION and error out if not provided
-export AVRO_SD_LOCATION="$(realpath "${3:?Please provide AVRO_SD_LOCATION as third argument}")"
+AVRO_SD_LOCATION="$(realpath "${3:?Please provide AVRO_SD_LOCATION as third argument}")"
 # the name of the subject is the name of the directory containing the Avro schema definitions
-export SCHEMA_SUBJECT_PREFIX="$(basename "$AVRO_SD_LOCATION")"
+SCHEMA_SUBJECT_PREFIX="$(basename "$AVRO_SD_LOCATION")"
 
 pushd "$(dirname "$0")" > /dev/null
 echo "Using schema registry $SCHEMA_REGISTRY_URL"
