@@ -29,7 +29,7 @@ for suffix in key value; do
     # validate the new schema against the Confluent Schema Registry
     if [ "$MODE" = "validate" ]; then
         echo "Validating subject: $subject"
-        curl -L --silent --fail -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+        curl -L --silent --show-error --fail -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
             --data "@$schema_buffer" \
             "$SCHEMA_REGISTRY_URL/compatibility/subjects/$subject/versions/latest?verbose=true" | tee "$schema_buffer.out"
         echo ''
@@ -40,7 +40,7 @@ for suffix in key value; do
     # register the new schema with the Confluent Schema Registry
     if [ "$MODE" = "register" ]; then
         echo "Registering subject: $subject"
-        curl -L --silent --fail -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
+        curl -L --silent --show-error --fail -X POST -H "Content-Type: application/vnd.schemaregistry.v1+json" \
             --data "@$schema_buffer" \
             "$SCHEMA_REGISTRY_URL/subjects/$subject/versions"
         echo ''
