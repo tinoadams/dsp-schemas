@@ -14,9 +14,9 @@ SUBJECT_PACKAGE_VERSION="${2:?Please provide SUBJECT_PACKAGE_VERSION as second a
 AVRO_SD_LOCATION=$(realpath "${3:?Please provide AVRO_SD_LOCATION as third argument}")
 # error if the directory does not exist
 [ -d "$AVRO_SD_LOCATION" ] || { echo "Missing Avro schema definition directory: $AVRO_SD_LOCATION"; exit 2; }
-# the name of the java package is the subject name withouth key/value suffix
+# determine java package name based on the directory name
 SUBJECT_PACKAGE_NAME="$(basename "$AVRO_SD_LOCATION")"
-# set TARGET_LOCATION
+# set package build location (will be removed/created by this script)
 PACKAGE_LOCATION="$TARGET_LOCATION/$SUBJECT_PACKAGE_NAME"
 
 pushd "$(dirname "$0")" > /dev/null

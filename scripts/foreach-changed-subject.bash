@@ -76,8 +76,9 @@ fi
 echo "Finding changed subjects between '$PREVIOUS_VERSION_TAG' and '$RELEASE_TAG'"
 git diff --name-status "$RELEASE_TAG..$PREVIOUS_VERSION_TAG" \
     | awk '{print $2}' \
-    | grep -E "^$RELATIVE_PATH_TO_SUBJECTS/" \
+    | { grep -E "^$RELATIVE_PATH_TO_SUBJECTS/" || true; } \
     | while read file; do
+        # filter out deleted subjects
         pushd "$PATH_TO_SUBJECTS/.." > /dev/null
         [ -f "$file" ] && realpath "$(dirname "$file")" || echo "DELETED"
         popd > /dev/null

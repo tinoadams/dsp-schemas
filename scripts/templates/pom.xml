@@ -9,7 +9,8 @@
     <name>${TEMPLATE_SUBJECT_PACKAGE_NAME}</name>
     <url>http://maven.apache.org</url>
 
-    <!-- Each profile.activation.property.name matches an environment which is provided via release tags eg git tag
+    <!-- Each profile.activation.property.name matches an environment which is provided via release
+    tags eg git tag
     non-prod/1.2 -->
     <profiles>
         <profile>
